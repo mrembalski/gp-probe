@@ -2,11 +2,9 @@
 
 #include <SD.h>
 
-#include <HD44780.h>
 #include <KAmodTEM.h>
 #include <TWI.h>
 
-#include <KAmodTEM.h>
 
 const int chipSelect = 53;
 
