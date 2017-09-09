@@ -1,0 +1,144 @@
+/
+#define GSM_serial Serial1
+
+bool send_sms(char* phoneNumber, char* message){
+  /*
+
+  GSM_serial.flush();
+  GSM_serial.write("\r\n");
+  delay(10);
+
+  GSM_serial.write("AT+CMGF=1\r\n");
+  
+  delay(2000);
+*/
+  //if (GSM_serial.findUntil("OK", "ERROR\r\n")) {
+    GSM_serial.flush();
+    GSM_serial.write("AT+CMGS=\"");
+    GSM_serial.write(phoneNumber);
+    GSM_serial.write("\"\r\n");
+
+    GSM_serial.flush();
+
+    GSM_serial.setTimeout(500);
+    if (GSM_serial.find(">")) {
+
+      GSM_serial.write(message);
+      GSM_serial.write("\x1A\r\n");
+
+      GSM_serial.setTimeout(10000);
+      GSM_serial.flush();
+
+      if (GSM_serial.find("+CMGS: ")) {
+        GSM_serial.setTimeout(1000);
+        return true;
+      }
+    }
+  //}
+  GSM_serial.setTimeout(1000);
+  return false;
+
+}
+/*
+float GSM_G510::getSignalStrength() {
+  serial.flush();
+  serial.write("\r\n");
+  delay(100);
+  serial.write("AT+CSQ\r\n");
+  serial.flush();
+  
+  return serial.parseFloat();
+}
+*/
+
+bool send_gsm_cmd(char * cmd, long timeout){
+
+  char out_buf[256];
+
+  GSM_serial.flush();
+  GSM_serial.setTimeout(timeout);
+  GSM_serial.write(cmd);
+
+  Serial.print("sending cmd: ");
+  Serial.print(cmd);
+  bool ret = GSM_serial.find("OK");
+
+  GSM_serial.setTimeout(200);
+  int n = GSM_serial.readBytes(out_buf, 256);
+  out_buf[n] = 0;
+
+  Serial.print("#>");
+  Serial.print(out_buf);
+  Serial.println("<#");
+
+  if ( ret ) {
+    Serial.println("OK!");
+    return true;
+  } else {
+    Serial.println("FAIL!");
+    return false;
+  }
+  //delay(3000);
+}
+
+void setup() {
+  // initialize both serial ports:
+  Serial.begin(115200);
+  Serial.println(F("start"));
+
+  
+  GSM_serial.begin(9600);
+
+  GSM_serial.setTimeout(10000);
+  GSM_serial.flush();
+  GSM_serial.write("\r\n");
+  delay(10);
+
+  Serial.println("GSM in network");
+
+  send_gsm_cmd("AT+CREG=2\r\n", 10000);
+
+  send_gsm_cmd("AT+CREG?\r\n", 500);
+  send_gsm_cmd("AT+CMGF=1\r\n",500);
+
+
+/*
+  GSM_serial.setTimeout(10000);
+  GSM_serial.flush();
+  GSM_serial.write("AT+CREG=2\r\n");
+
+  if ( GSM_serial.find("OK")) {
+  //if (GSM_serial.findUntil("OK", "ERROR\r\n")) {
+    Serial.println("OK!");
+  } else {
+    Serial.println("failed");
+  }
+
+  //delay(3000);
+  Serial.println("GSM network end");
+
+  GSM_serial.write("AT+CREG?\r\n");
+*/
+}
+
+void loop() {
+  // read from port 1, send to port 0:
+  if (Serial1.available()) {
+    int inByte = Serial1.read();
+    Serial.write(inByte);
+  }
+
+  // read from port 0, send to port 1:
+  if (Serial.available()) {
+    int inByte = Serial.read();
+    //Serial1.write(inByte);
+    if((char)inByte == '\n' ){
+      if(send_sms("+48503929159", "hello from arduino")){
+        Serial.println("sms send ok");
+
+      } else {
+        Serial.println("sms send failed");
+      }
+    }
+  }
+}
