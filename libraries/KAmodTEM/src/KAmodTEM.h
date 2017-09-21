@@ -1,4 +1,5 @@
-
+#ifndef __KAMODTEM_h
+#define __KAMODTEM_h
 
 
 #define TEMPERATURE		0x00
@@ -10,3 +11,5 @@
 void KAmodTEM_WriteReg(unsigned char idx, unsigned char RegAddr, int RegValue);
 int  KAmodTEM_ReadReg(unsigned char idx, unsigned char RegAddr);
 void KAmodTEM_Init(void);
+
+#endif
